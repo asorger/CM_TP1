@@ -1,5 +1,6 @@
 from dataclasses import field
 import flet as ft
+from sympy import sympify, N
 
 @ft.control
 class CalcButton(ft.Button):
@@ -28,9 +29,15 @@ class CalculatorApp(ft.Container):
         self.bgcolor = ft.Colors.BLACK
         self.border_radius = ft.BorderRadius.all(20)
         self.padding = 20
+        self.expression = ft.Text(value="", color=ft.Colors.WHITE54, size=16)
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
         self.content = ft.Column(
             controls=[
+                ft.Row(
+                    controls=[self.expression],
+                    alignment=ft.MainAxisAlignment.END,
+                ),
+
                 ft.Row(
                     controls=[self.result],
                     alignment=ft.MainAxisAlignment.END,
@@ -82,8 +89,15 @@ class CalculatorApp(ft.Container):
     def button_clicked(self, e):
         data = e.control.content
         print(f"Button clicked with data = {data}")
+        if data not in ("=", "AC"):
+            if data in ("+", "-", "*", "/", "%"):
+                self.expression.value += f" {data} "
+            else:
+                self.expression.value += data
+
         if self.result.value == "Error" or data == "AC":
             self.result.value = "0"
+            self.expression.value = "" 
             self.reset()
 
         elif data in ("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "."):
@@ -104,25 +118,28 @@ class CalculatorApp(ft.Container):
                 self.operand1 = float(self.result.value)
             self.new_operand = True
 
-        elif data in ("="):
-            self.result.value = self.calculate(
-                self.operand1, float(self.result.value), self.operator
-            )
+        elif data == "=":
+            try:
+                expr = self.expression.value.replace("×", "*").replace("÷", "/")
+                result = N(sympify(expr))
+                self.result.value = str(result)
+            except:
+                self.result.value = "Error"
+
+            self.expression.value = ""
             self.reset()
 
-        elif data in ("%"):
+        elif data == "%":
             self.result.value = float(self.result.value) / 100
             self.reset()
 
-        elif data in ("+/-"):
+        elif data == "+/-":
             if float(self.result.value) > 0:
                 self.result.value = "-" + str(self.result.value)
-
             elif float(self.result.value) < 0:
                 self.result.value = str(
                     self.format_number(abs(float(self.result.value)))
                 )
-
         self.update()
 
     def format_number(self, num):
@@ -155,7 +172,6 @@ class CalculatorApp(ft.Container):
 def main(page: ft.Page):
     page.title = "Calc App"
     calc = CalculatorApp()
-
     page.add(calc)
 
 ft.run(main)
