@@ -36,7 +36,8 @@ class CalculatorApp(ft.Container):
             text_size=20,
             hint_text="Insira expressão...",
             on_change=self.text_changed,
-            on_submit=self.calculate_from_text
+            on_submit=self.calculate_from_text,
+            text_align=ft.TextAlign.RIGHT
         )
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
         self.content = ft.Column(
