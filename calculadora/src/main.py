@@ -1,6 +1,6 @@
 from dataclasses import field
 import flet as ft
-from sympy import sympify, N
+from sympy import sympify, N, sqrt, sin
 
 @ft.control
 class CalcButton(ft.Button):
@@ -30,139 +30,137 @@ class CalculatorApp(ft.Container):
         self.border_radius = ft.BorderRadius.all(20)
         self.padding = 20
         self.expression = ft.Text(value="", color=ft.Colors.WHITE54, size=16)
+        self.text = ft.TextField(
+            value="",
+            color=ft.Colors.WHITE,
+            text_size=20,
+            hint_text="Insira expressão...",
+            on_change=self.text_changed,
+            on_submit=self.calculate_from_text,
+            text_align=ft.TextAlign.RIGHT
+        )
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
         self.content = ft.Column(
             controls=[
-                ft.Row(
-                    controls=[self.expression],
-                    alignment=ft.MainAxisAlignment.END,
-                ),
-
-                ft.Row(
-                    controls=[self.result],
-                    alignment=ft.MainAxisAlignment.END,
-                ),
-                ft.Row(
-                    controls=[
-                        ExtraActionButton(content="AC", on_click=self.button_clicked),
-                        ExtraActionButton(content="+/-", on_click=self.button_clicked),
-                        ExtraActionButton(content="%", on_click=self.button_clicked),
-                        ActionButton(content="/", on_click=self.button_clicked),
-                    ]
-                ),
-                ft.Row(
-                    controls=[
-                        DigitButton(content="7", on_click=self.button_clicked),
-                        DigitButton(content="8", on_click=self.button_clicked),
-                        DigitButton(content="9", on_click=self.button_clicked),
-                        ActionButton(content="*", on_click=self.button_clicked),
-                    ]
-                ),
-                ft.Row(
-                    controls=[
-                        DigitButton(content="4", on_click=self.button_clicked),
-                        DigitButton(content="5", on_click=self.button_clicked),
-                        DigitButton(content="6", on_click=self.button_clicked),
-                        ActionButton(content="-", on_click=self.button_clicked),
-                    ]
-                ),
-                ft.Row(
-                    controls=[
-                        DigitButton(content="1", on_click=self.button_clicked),
-                        DigitButton(content="2", on_click=self.button_clicked),
-                        DigitButton(content="3", on_click=self.button_clicked),
-                        ActionButton(content="+", on_click=self.button_clicked),
-                    ]
-                ),
-                ft.Row(
-                    controls=[
-                        DigitButton(
-                            content="0", expand=2, on_click=self.button_clicked
-                        ),
-                        DigitButton(content=".", on_click=self.button_clicked),
-                        ActionButton(content="=", on_click=self.button_clicked),
-                    ]
-                ),
+                ft.Row(controls=[self.text]),
+                ft.Row([self.expression], alignment=ft.MainAxisAlignment.END),
+                ft.Row([self.result], alignment=ft.MainAxisAlignment.END),
+                ft.Row([
+                    ExtraActionButton(content="CE", on_click=self.button_clicked),
+                    ExtraActionButton(content="⬅️", on_click=self.button_clicked),
+                    ExtraActionButton(content="(", on_click=self.button_clicked),
+                    ExtraActionButton(content=")", on_click=self.button_clicked),
+                ]),
+                ft.Row([
+                    ExtraActionButton(content="√", on_click=self.button_clicked),
+                    ExtraActionButton(content="x²", on_click=self.button_clicked),
+                    ExtraActionButton(content="1/x", on_click=self.button_clicked),
+                    ExtraActionButton(content="sin", on_click=self.button_clicked),
+                ]),
+                ft.Row([
+                    ExtraActionButton(content="AC", on_click=self.button_clicked),
+                    ExtraActionButton(content="+/-", on_click=self.button_clicked),
+                    ExtraActionButton(content="%", on_click=self.button_clicked),
+                    ActionButton(content="/", on_click=self.button_clicked),
+                ]),
+                ft.Row([
+                    DigitButton(content="7", on_click=self.button_clicked),
+                    DigitButton(content="8", on_click=self.button_clicked),
+                    DigitButton(content="9", on_click=self.button_clicked),
+                    ActionButton(content="*", on_click=self.button_clicked),
+                ]),
+                ft.Row([
+                    DigitButton(content="4", on_click=self.button_clicked),
+                    DigitButton(content="5", on_click=self.button_clicked),
+                    DigitButton(content="6", on_click=self.button_clicked),
+                    ActionButton(content="-", on_click=self.button_clicked),
+                ]),
+                ft.Row([
+                    DigitButton(content="1", on_click=self.button_clicked),
+                    DigitButton(content="2", on_click=self.button_clicked),
+                    DigitButton(content="3", on_click=self.button_clicked),
+                    ActionButton(content="+", on_click=self.button_clicked),
+                ]),
+                ft.Row([
+                    DigitButton(content="0", expand=2, on_click=self.button_clicked),
+                    DigitButton(content=".", on_click=self.button_clicked),
+                    ActionButton(content="=", on_click=self.button_clicked),
+                ]),
             ]
         )
 
-    def button_clicked(self, e):
-        data = e.control.content
-        print(f"Button clicked with data = {data}")
-        if data not in ("=", "AC"):
-            if data in ("+", "-", "*", "/", "%"):
-                self.expression.value += f" {data} "
-            else:
-                self.expression.value += data
+    def text_changed(self, e):
+        allowed = "0123456789+-*/(). "
+        new_text = "".join(c for c in self.text.value if c in allowed)
+        if new_text != self.text.value:
+            self.text.value = new_text
+            self.update()
 
-        if self.result.value == "Error" or data == "AC":
-            self.result.value = "0"
-            self.expression.value = "" 
-            self.reset()
-
-        elif data in ("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "."):
-            if self.result.value == "0" or self.new_operand:
-                self.result.value = data
-                self.new_operand = False
-            else:
-                self.result.value = self.result.value + data
-
-        elif data in ("+", "-", "*", "/"):
-            self.result.value = self.calculate(
-                self.operand1, float(self.result.value), self.operator
-            )
-            self.operator = data
-            if self.result.value == "Error":
-                self.operand1 = "0"
-            else:
-                self.operand1 = float(self.result.value)
-            self.new_operand = True
-
-        elif data == "=":
-            try:
-                expr = self.expression.value.replace("×", "*").replace("÷", "/")
-                result = N(sympify(expr))
-                self.result.value = str(result)
-            except:
-                self.result.value = "Error"
-
-            self.expression.value = ""
-            self.reset()
-
-        elif data == "%":
-            self.result.value = float(self.result.value) / 100
-            self.reset()
-
-        elif data == "+/-":
-            if float(self.result.value) > 0:
-                self.result.value = "-" + str(self.result.value)
-            elif float(self.result.value) < 0:
-                self.result.value = str(
-                    self.format_number(abs(float(self.result.value)))
-                )
+    def calculate_from_text(self, e):
+        try:
+            result = N(sympify(self.text.value))
+            self.result.value = self.format_with_spaces(result)
+        except:
+            self.result.value = "Erro"
         self.update()
 
-    def format_number(self, num):
-        if num % 1 == 0:
-            return int(num)
-        else:
-            return num
-
-    def calculate(self, operand1, operand2, operator):
-        if operator == "+":
-            return self.format_number(operand1 + operand2)
-
-        elif operator == "-":
-            return self.format_number(operand1 - operand2)
-
-        elif operator == "*":
-            return self.format_number(operand1 * operand2)
-
-        elif operator == "/":
-            if operand2 == 0:
-                return "Error"
+    def format_with_spaces(self, value):
+        try:
+            num = float(value)
+            if num.is_integer():
+                return f"{int(num):,}".replace(",", " ")
             else:
-                return self.format_number(operand1 / operand2)
+                inteiro, decimal = str(num).split(".")
+                inteiro = f"{int(inteiro):,}".replace(",", " ")
+                return inteiro + "." + decimal
+        except:
+            return value
+
+    def button_clicked(self, e):
+        data = e.control.content
+
+        if data == "AC":
+            self.text.value = ""
+            self.result.value = "0"
+            self.update()
+            return
+
+        if data == "CE":
+            self.text.value = ""
+            self.update()
+            return
+
+        if data == "⬅️":
+            self.text.value = self.text.value[:-1]
+            self.update()
+            return
+
+        if data == "√":
+            self.text.value = f"sqrt({self.text.value})"
+            self.update()
+            return
+
+        if data == "x²":
+            self.text.value += "**2"
+            self.update()
+            return
+
+        if data == "1/x":
+            self.text.value = f"1/({self.text.value})"
+            self.update()
+            return
+
+        if data == "sin":
+            self.text.value = f"sin({self.text.value})"
+            self.update()
+            return
+
+        if data == "=":
+            self.calculate_from_text(None)
+            return
+
+        self.text.value += data
+        self.update()
 
     def reset(self):
         self.operator = "+"
