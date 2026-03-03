@@ -30,9 +30,18 @@ class CalculatorApp(ft.Container):
         self.border_radius = ft.BorderRadius.all(20)
         self.padding = 20
         self.expression = ft.Text(value="", color=ft.Colors.WHITE54, size=16)
+        self.text = ft.TextField(
+            value="",
+            color=ft.Colors.WHITE,
+            text_size=20,
+            hint_text="Insira expressão...",
+            on_change=self.text_changed,
+            on_submit=self.calculate_from_text
+        )
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
         self.content = ft.Column(
             controls=[
+                ft.Row(controls=[self.text]),
                 ft.Row([self.expression], alignment=ft.MainAxisAlignment.END),
                 ft.Row([self.result], alignment=ft.MainAxisAlignment.END),
                 ft.Row([
@@ -79,6 +88,21 @@ class CalculatorApp(ft.Container):
             ]
         )
 
+    def text_changed(self, e):
+        allowed = "0123456789+-*/(). "
+        new_text = "".join(c for c in self.text.value if c in allowed)
+        if new_text != self.text.value:
+            self.text.value = new_text
+            self.update()
+
+    def calculate_from_text(self, e):
+        try:
+            result = N(sympify(self.text.value))
+            self.result.value = self.format_with_spaces(result)
+        except:
+            self.result.value = "Erro"
+        self.update()
+
     def format_with_spaces(self, value):
         try:
             num = float(value)
@@ -94,62 +118,47 @@ class CalculatorApp(ft.Container):
     def button_clicked(self, e):
         data = e.control.content
 
-        if data not in ("=", "AC", "CE", "⬅️"):
-            if data in ("+", "-", "*", "/", "%", "(", ")"):
-                self.expression.value += f"{data}"
-            else:
-                self.expression.value += data
-
         if data == "AC":
+            self.text.value = ""
             self.result.value = "0"
-            self.expression.value = ""
-            self.reset()
             self.update()
             return
 
         if data == "CE":
-            self.result.value = "0"
+            self.text.value = ""
             self.update()
             return
 
         if data == "⬅️":
-            self.expression.value = self.expression.value[:-1]
+            self.text.value = self.text.value[:-1]
             self.update()
             return
 
         if data == "√":
-            self.expression.value = f"sqrt({self.expression.value})"
+            self.text.value = f"sqrt({self.text.value})"
             self.update()
             return
 
         if data == "x²":
-            self.expression.value += "**2"
+            self.text.value += "**2"
             self.update()
             return
 
         if data == "1/x":
-            self.expression.value = f"1/({self.expression.value})"
+            self.text.value = f"1/({self.text.value})"
             self.update()
             return
 
         if data == "sin":
-            self.expression.value = f"sin({self.expression.value})"
+            self.text.value = f"sin({self.text.value})"
             self.update()
             return
 
         if data == "=":
-            try:
-                expr = self.expression.value.replace("×", "*").replace("÷", "/")
-                result = N(sympify(expr))
-                self.result.value = self.format_with_spaces(result)
-            except:
-                self.result.value = "Error"
-
-            self.expression.value = ""
-            self.reset()
-            self.update()
+            self.calculate_from_text(None)
             return
 
+        self.text.value += data
         self.update()
 
     def reset(self):
