@@ -69,6 +69,15 @@ class CalculatorApp(ft.Container):
         self.bgcolor = ft.Colors.BLACK
         self.border_radius = ft.BorderRadius.all(20)
         self.padding = 20
+        self.history = []
+        self.history_index = 1
+        self.history_visible = False
+        self.toggle_history_btn = ft.TextButton(
+            "Histórico ⬇", on_click=self.toggle_history
+        )
+        self.history_panel = ft.Column(
+            visible=False, scroll=ft.ScrollMode.AUTO, height=200
+        )
         self.expression = ft.Text(value="", color=ft.Colors.WHITE54, size=16)
         self.text = ft.TextField(
             value="",
