@@ -2,6 +2,46 @@ from dataclasses import field
 import flet as ft
 from sympy import sympify, N, sqrt, sin
 
+
+class HistoryItem(ft.Container):
+    def __init__(
+        self, index, timestamp, expression, result, delete_callback, copy_callback
+    ):
+        super().__init__()
+
+        self.index = index
+        self.timestamp = timestamp
+        self.expression = expression
+        self.result = result
+
+        self.content = ft.Row(
+            controls=[
+                ft.Column(
+                    controls=[
+                        ft.Text(
+                            f"#{index}  {timestamp}", size=12, color=ft.Colors.WHITE54
+                        ),
+                        ft.Text(expression, size=14, color=ft.Colors.WHITE),
+                        ft.Text(result, size=16, color=ft.Colors.ORANGE),
+                    ],
+                    expand=True,
+                ),
+                ft.IconButton(
+                    icon=ft.Icons.DELETE, on_click=lambda e: delete_callback(self)
+                ),
+                ft.IconButton(
+                    icon=ft.Icons.COPY, on_click=lambda e: copy_callback(self)
+                ),
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+        )
+
+        self.padding = 10
+        self.border = ft.border.all(1, ft.Colors.WHITE24)
+        self.border_radius = 8
+        self.margin = ft.margin.only(bottom=5)
+
+
 @ft.control
 class CalcButton(ft.Button):
     expand: int = field(default_factory=lambda: 1)
@@ -45,47 +85,63 @@ class CalculatorApp(ft.Container):
                 ft.Row(controls=[self.text]),
                 ft.Row([self.expression], alignment=ft.MainAxisAlignment.END),
                 ft.Row([self.result], alignment=ft.MainAxisAlignment.END),
-                ft.Row([
-                    ExtraActionButton(content="CE", on_click=self.button_clicked),
-                    ExtraActionButton(content="⬅️", on_click=self.button_clicked),
-                    ExtraActionButton(content="(", on_click=self.button_clicked),
-                    ExtraActionButton(content=")", on_click=self.button_clicked),
-                ]),
-                ft.Row([
-                    ExtraActionButton(content="√", on_click=self.button_clicked),
-                    ExtraActionButton(content="x²", on_click=self.button_clicked),
-                    ExtraActionButton(content="1/x", on_click=self.button_clicked),
-                    ExtraActionButton(content="sin", on_click=self.button_clicked),
-                ]),
-                ft.Row([
-                    ExtraActionButton(content="AC", on_click=self.button_clicked),
-                    ExtraActionButton(content="+/-", on_click=self.button_clicked),
-                    ExtraActionButton(content="%", on_click=self.button_clicked),
-                    ActionButton(content="/", on_click=self.button_clicked),
-                ]),
-                ft.Row([
-                    DigitButton(content="7", on_click=self.button_clicked),
-                    DigitButton(content="8", on_click=self.button_clicked),
-                    DigitButton(content="9", on_click=self.button_clicked),
-                    ActionButton(content="*", on_click=self.button_clicked),
-                ]),
-                ft.Row([
-                    DigitButton(content="4", on_click=self.button_clicked),
-                    DigitButton(content="5", on_click=self.button_clicked),
-                    DigitButton(content="6", on_click=self.button_clicked),
-                    ActionButton(content="-", on_click=self.button_clicked),
-                ]),
-                ft.Row([
-                    DigitButton(content="1", on_click=self.button_clicked),
-                    DigitButton(content="2", on_click=self.button_clicked),
-                    DigitButton(content="3", on_click=self.button_clicked),
-                    ActionButton(content="+", on_click=self.button_clicked),
-                ]),
-                ft.Row([
-                    DigitButton(content="0", expand=2, on_click=self.button_clicked),
-                    DigitButton(content=".", on_click=self.button_clicked),
-                    ActionButton(content="=", on_click=self.button_clicked),
-                ]),
+                ft.Row(
+                    [
+                        ExtraActionButton(content="CE", on_click=self.button_clicked),
+                        ExtraActionButton(content="⬅️", on_click=self.button_clicked),
+                        ExtraActionButton(content="(", on_click=self.button_clicked),
+                        ExtraActionButton(content=")", on_click=self.button_clicked),
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ExtraActionButton(content="AC", on_click=self.button_clicked),
+                        ExtraActionButton(content="+/-", on_click=self.button_clicked),
+                        ExtraActionButton(content="%", on_click=self.button_clicked),
+                        ActionButton(content="/", on_click=self.button_clicked),
+                    ]
+                ),
+                ft.Row(
+                    [
+                        DigitButton(content="7", on_click=self.button_clicked),
+                        DigitButton(content="8", on_click=self.button_clicked),
+                        DigitButton(content="9", on_click=self.button_clicked),
+                        ActionButton(content="*", on_click=self.button_clicked),
+                    ]
+                ),
+                ft.Row(
+                    [
+                        DigitButton(content="4", on_click=self.button_clicked),
+                        DigitButton(content="5", on_click=self.button_clicked),
+                        DigitButton(content="6", on_click=self.button_clicked),
+                        ActionButton(content="-", on_click=self.button_clicked),
+                    ]
+                ),
+                ft.Row(
+                    [
+                        DigitButton(content="1", on_click=self.button_clicked),
+                        DigitButton(content="2", on_click=self.button_clicked),
+                        DigitButton(content="3", on_click=self.button_clicked),
+                        ActionButton(content="+", on_click=self.button_clicked),
+                    ]
+                ),
+                ft.Row(
+                    [
+                        ExtraActionButton(content="√", on_click=self.button_clicked),
+                        ExtraActionButton(content="x²", on_click=self.button_clicked),
+                        ExtraActionButton(content="1/x", on_click=self.button_clicked),
+                        ExtraActionButton(content="sin", on_click=self.button_clicked),
+                    ]
+                ),
+                ft.Row(
+                    [
+                        DigitButton(
+                            content="0", expand=2, on_click=self.button_clicked
+                        ),
+                        DigitButton(content=".", on_click=self.button_clicked),
+                        ActionButton(content="=", on_click=self.button_clicked),
+                    ]
+                ),
             ]
         )
 
