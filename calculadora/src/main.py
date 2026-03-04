@@ -91,6 +91,9 @@ class CalculatorApp(ft.Container):
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
         self.content = ft.Column(
             controls=[
+                ft.Row([self.toggle_history_btn], alignment=ft.MainAxisAlignment.END),
+                self.history_panel,
+                
                 ft.Row(controls=[self.text]),
                 ft.Row([self.expression], alignment=ft.MainAxisAlignment.END),
                 ft.Row([self.result], alignment=ft.MainAxisAlignment.END),
