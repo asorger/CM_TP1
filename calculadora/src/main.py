@@ -158,6 +158,13 @@ class CalculatorApp(ft.Container):
         self.history_panel.controls = self.history
         self.update()
 
+    def delete_history_item(self, item):
+        self.history.remove(item)
+        self.refresh_history_panel()
+
+    def copy_history_item(self, item):
+        self.page.set_clipboard(item.result)
+
     def text_changed(self, e):
         allowed = "0123456789+-*/(). "
         new_text = "".join(c for c in self.text.value if c in allowed)
