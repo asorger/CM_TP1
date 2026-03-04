@@ -1,7 +1,7 @@
 from dataclasses import field
 import flet as ft
 from sympy import sympify, N, sqrt, sin
-
+from datetime import datetime
 
 class HistoryItem(ft.Container):
     def __init__(
@@ -154,6 +154,27 @@ class CalculatorApp(ft.Container):
             ]
         )
 
+    def add_to_history(self, expression, result):
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        item = HistoryItem(
+            index=self.history_index,
+            timestamp=timestamp,
+            expression=expression,
+            result=result,
+            delete_callback=self.delete_history_item,
+            copy_callback=self.copy_history_item,
+        )
+
+        self.history_index += 1
+
+        self.history.insert(0, item)
+
+        if len(self.history) > 10:
+            self.history.pop()
+
+        self.refresh_history_panel()
+
     def refresh_history_panel(self):
         self.history_panel.controls = self.history
         self.update()
@@ -173,11 +194,15 @@ class CalculatorApp(ft.Container):
             self.update()
 
     def calculate_from_text(self, e):
+        expression = self.text.value
         try:
-            result = N(sympify(self.text.value))
-            self.result.value = self.format_with_spaces(result)
+            result = N(sympify(expression))
+            formatted = self.format_with_spaces(result)
+            self.result.value = formatted
+            self.add_to_history(expression, formatted)
         except:
             self.result.value = "Erro"
+        self.text.value = ""
         self.update()
 
     def format_with_spaces(self, value):
