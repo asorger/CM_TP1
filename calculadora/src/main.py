@@ -154,6 +154,14 @@ class CalculatorApp(ft.Container):
             ]
         )
 
+    def toggle_history(self, e):
+        self.history_visible = not self.history_visible
+        self.history_panel.visible = self.history_visible
+        self.toggle_history_btn.text = (
+            "Histórico ⬆" if self.history_visible else "Histórico ⬇"
+        )
+        self.update()
+
     def add_to_history(self, expression, result):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
