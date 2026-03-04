@@ -154,6 +154,10 @@ class CalculatorApp(ft.Container):
             ]
         )
 
+    def refresh_history_panel(self):
+        self.history_panel.controls = self.history
+        self.update()
+
     def text_changed(self, e):
         allowed = "0123456789+-*/(). "
         new_text = "".join(c for c in self.text.value if c in allowed)
