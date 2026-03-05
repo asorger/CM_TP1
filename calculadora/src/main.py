@@ -16,26 +16,24 @@ class HistoryItem(ft.Container):
         self.expression = expression
         self.result = result
 
-        self.content = ft.Row(
+        self.content = ft.Column(
             controls=[
-                ft.Column(
-                    controls=[
-                        ft.Text(f"#{index}  {timestamp}", size=12, color=ft.Colors.WHITE54),
-                        ft.Text(expression, size=14, color=ft.Colors.WHITE),
-                        ft.Text(result, size=16, color=ft.Colors.ORANGE),
+                ft.Text(expression, size=16, color=ft.Colors.WHITE),
+                ft.Text(f"= {result}", size=18, color=ft.Colors.ORANGE),
+                ft.Text(timestamp, size=12, color=ft.Colors.WHITE38),
+                ft.Row(
+                    [
+                        ft.IconButton(icon=ft.Icons.COPY, icon_size=18, on_click=lambda e: copy_callback(self)),
+                        ft.IconButton(icon=ft.Icons.DELETE, icon_size=18, on_click=lambda e: delete_callback(self)),
                     ],
-                    expand=True
-                ),
-                ft.IconButton(icon=ft.Icons.DELETE, on_click=lambda e: delete_callback(self)),
-                ft.IconButton(icon=ft.Icons.COPY, on_click=lambda e: copy_callback(self)),
+                    alignment=ft.MainAxisAlignment.END
+                )
             ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+            spacing=2
         )
 
         self.padding = 10
-        self.border = ft.border.all(1, ft.Colors.WHITE24)
-        self.border_radius = 8
-        self.margin = ft.margin.only(bottom=5)
+        self.border = ft.border.only(bottom=ft.BorderSide(1, ft.Colors.WHITE12))
 
 
 @ft.control
@@ -57,6 +55,7 @@ class ExtraActionButton(CalcButton):
     bgcolor: ft.Colors = ft.Colors.BLUE_GREY_100
     color: ft.Colors = ft.Colors.BLACK
 
+
 @ft.control
 class CalculatorApp(ft.Container):
     def init(self):
@@ -65,18 +64,33 @@ class CalculatorApp(ft.Container):
         self.bgcolor = ft.Colors.BLACK
         self.border_radius = ft.BorderRadius.all(20)
         self.padding = 20
+
+        # HISTÓRICO
         self.history = []
         self.history_index = 1
         self.history_visible = False
-        self.toggle_history_btn = ft.TextButton(
-            "Histórico ⬇",
+
+        # BOTÃO DE TROCA
+        self.history_btn = ft.IconButton(
+            icon=ft.Icons.HISTORY,
+            icon_size=28,
             on_click=self.toggle_history
         )
-        self.history_panel = ft.Column(
+
+        # PAINEL DO HISTÓRICO
+        self.history_panel = ft.Container(
             visible=False,
-            scroll=ft.ScrollMode.AUTO,
-            height=200
+            bgcolor=ft.Colors.BLACK12,
+            padding=10,
+            border_radius=10,
+            content=ft.Column(
+                scroll=ft.ScrollMode.AUTO,
+                height=300,
+                spacing=8
+            )
         )
+
+        # CAMPOS DA CALCULADORA
         self.expression = ft.Text(value="", color=ft.Colors.WHITE54, size=16)
         self.text = ft.TextField(
             value="",
@@ -88,11 +102,10 @@ class CalculatorApp(ft.Container):
             text_align=ft.TextAlign.RIGHT
         )
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
-        self.content = ft.Column(
-            controls=[
-                ft.Row([self.toggle_history_btn], alignment=ft.MainAxisAlignment.END),
-                self.history_panel,
 
+        # TECLADO DA CALCULADORA (tudo agrupado num container)
+        self.calc_keyboard = ft.Column(
+            controls=[
                 ft.Row([self.text]),
                 ft.Row([self.expression], alignment=ft.MainAxisAlignment.END),
                 ft.Row([self.result], alignment=ft.MainAxisAlignment.END),
@@ -144,6 +157,15 @@ class CalculatorApp(ft.Container):
             ]
         )
 
+        # LAYOUT FINAL
+        self.content = ft.Column(
+            controls=[
+                ft.Row([self.history_btn], alignment=ft.MainAxisAlignment.END),
+                self.history_panel,
+                self.calc_keyboard
+            ]
+        )
+
     def did_mount(self):
         self.load_history()
 
@@ -175,7 +197,6 @@ class CalculatorApp(ft.Container):
             print("Erro DuckDB:", e)
 
     def load_history(self):
-        loaded = False
         if os.path.exists(PARQUET_FILE):
             try:
                 con = duckdb.connect()
@@ -198,16 +219,22 @@ class CalculatorApp(ft.Container):
                 if len(self.history) > 0:
                     self.history_index = self.history[0].index + 1
 
-                loaded = True
             except Exception as e:
                 print("Erro a ler Parquet/DuckDB:", e)
 
         self.refresh_history_panel()
 
+    # AQUI ESTÁ A ALTERAÇÃO IMPORTANTE
     def toggle_history(self, e):
         self.history_visible = not self.history_visible
+
+        # Alterna ícone
+        self.history_btn.icon = ft.Icons.CALCULATE if self.history_visible else ft.Icons.HISTORY
+
+        # Mostra histórico e esconde calculadora
         self.history_panel.visible = self.history_visible
-        self.toggle_history_btn.text = "Histórico ⬆" if self.history_visible else "Histórico ⬇"
+        self.calc_keyboard.visible = not self.history_visible
+
         self.update()
 
     def add_to_history(self, expression, result):
@@ -223,7 +250,6 @@ class CalculatorApp(ft.Container):
         )
 
         self.history_index += 1
-
         self.history.insert(0, item)
 
         if len(self.history) > 10:
@@ -233,7 +259,7 @@ class CalculatorApp(ft.Container):
         self.refresh_history_panel()
 
     def refresh_history_panel(self):
-        self.history_panel.controls = self.history
+        self.history_panel.content.controls = self.history
         self.update()
 
     def delete_history_item(self, item):
@@ -325,6 +351,7 @@ class CalculatorApp(ft.Container):
         self.operator = "+"
         self.operand1 = 0
         self.new_operand = True
+
 
 def main(page: ft.Page):
     page.title = "Calc App"
