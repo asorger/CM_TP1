@@ -64,20 +64,16 @@ class CalculatorApp(ft.Container):
         self.bgcolor = ft.Colors.BLACK
         self.border_radius = ft.BorderRadius.all(20)
         self.padding = 20
-
-        # HISTÓRICO
         self.history = []
         self.history_index = 1
         self.history_visible = False
 
-        # BOTÃO DE TROCA
         self.history_btn = ft.IconButton(
             icon=ft.Icons.HISTORY,
             icon_size=28,
             on_click=self.toggle_history
         )
 
-        # PAINEL DO HISTÓRICO
         self.history_panel = ft.Container(
             visible=False,
             bgcolor=ft.Colors.BLACK12,
@@ -90,7 +86,6 @@ class CalculatorApp(ft.Container):
             )
         )
 
-        # CAMPOS DA CALCULADORA
         self.expression = ft.Text(value="", color=ft.Colors.WHITE54, size=16)
         self.text = ft.TextField(
             value="",
@@ -102,8 +97,6 @@ class CalculatorApp(ft.Container):
             text_align=ft.TextAlign.RIGHT
         )
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
-
-        # TECLADO DA CALCULADORA (tudo agrupado num container)
         self.calc_keyboard = ft.Column(
             controls=[
                 ft.Row([self.text]),
@@ -157,7 +150,6 @@ class CalculatorApp(ft.Container):
             ]
         )
 
-        # LAYOUT FINAL
         self.content = ft.Column(
             controls=[
                 ft.Row([self.history_btn], alignment=ft.MainAxisAlignment.END),
@@ -224,14 +216,9 @@ class CalculatorApp(ft.Container):
 
         self.refresh_history_panel()
 
-    # AQUI ESTÁ A ALTERAÇÃO IMPORTANTE
     def toggle_history(self, e):
         self.history_visible = not self.history_visible
-
-        # Alterna ícone
         self.history_btn.icon = ft.Icons.CALCULATE if self.history_visible else ft.Icons.HISTORY
-
-        # Mostra histórico e esconde calculadora
         self.history_panel.visible = self.history_visible
         self.calc_keyboard.visible = not self.history_visible
 
@@ -351,7 +338,6 @@ class CalculatorApp(ft.Container):
         self.operator = "+"
         self.operand1 = 0
         self.new_operand = True
-
 
 def main(page: ft.Page):
     page.title = "Calc App"
