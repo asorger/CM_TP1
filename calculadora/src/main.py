@@ -60,7 +60,7 @@ class ExtraActionButton(CalcButton):
 class CalculatorApp(ft.Container):
     def init(self):
         self.reset()
-        self.width = 350
+        self.expand = True
         self.bgcolor = ft.Colors.BLACK
         self.border_radius = ft.BorderRadius.all(20)
         self.padding = 20
@@ -341,6 +341,7 @@ class CalculatorApp(ft.Container):
 
 def main(page: ft.Page):
     page.title = "Calc App"
+    page.expand = True
     calc = CalculatorApp()
     page.add(calc)
 
