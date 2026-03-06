@@ -36,9 +36,18 @@ class HistoryItem(ft.Container):
         self.border = ft.border.only(bottom=ft.BorderSide(1, ft.Colors.WHITE12))
 
 
+# -----------------------------
+# BOTÕES ESTILO iPHONE
+# -----------------------------
 @ft.control
 class CalcButton(ft.Button):
     expand: int = field(default_factory=lambda: 1)
+    height: int = 65
+    border_radius: int = 12
+    style = ft.ButtonStyle(
+        shape=ft.RoundedRectangleBorder(radius=12),
+        padding=0
+    )
 
 @ft.control
 class DigitButton(CalcButton):
@@ -56,6 +65,9 @@ class ExtraActionButton(CalcButton):
     color: ft.Colors = ft.Colors.BLACK
 
 
+# -----------------------------
+# APP PRINCIPAL
+# -----------------------------
 @ft.control
 class CalculatorApp(ft.Container):
     def init(self):
@@ -63,7 +75,7 @@ class CalculatorApp(ft.Container):
         self.expand = True
         self.bgcolor = ft.Colors.BLACK
         self.border_radius = ft.BorderRadius.all(20)
-        self.padding = 20
+        self.padding = 10
         self.history = []
         self.history_index = 1
         self.history_visible = False
@@ -97,60 +109,71 @@ class CalculatorApp(ft.Container):
             text_align=ft.TextAlign.RIGHT
         )
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
+
+        # -----------------------------
+        # TECLADO SIMÉTRICO
+        # -----------------------------
         self.calc_keyboard = ft.Column(
+            expand=True,
+            spacing=8,
             controls=[
-                ft.Row([self.text]),
-                ft.Row([self.expression], alignment=ft.MainAxisAlignment.END),
-                ft.Row([self.result], alignment=ft.MainAxisAlignment.END),
+                ft.Row([self.text], expand=False),
+                ft.Row([self.expression], alignment=ft.MainAxisAlignment.END, expand=False),
+                ft.Row([self.result], alignment=ft.MainAxisAlignment.END, expand=False),
 
                 ft.Row([
                     ExtraActionButton(content="CE", on_click=self.button_clicked),
                     ExtraActionButton(content="⬅️", on_click=self.button_clicked),
                     ExtraActionButton(content="(", on_click=self.button_clicked),
                     ExtraActionButton(content=")", on_click=self.button_clicked),
-                ]),
+                ], expand=True),
 
                 ft.Row([
                     ExtraActionButton(content="√", on_click=self.button_clicked),
                     ExtraActionButton(content="x²", on_click=self.button_clicked),
                     ExtraActionButton(content="1/x", on_click=self.button_clicked),
                     ExtraActionButton(content="sin", on_click=self.button_clicked),
-                ]),
+                ], expand=True),
 
                 ft.Row([
                     ExtraActionButton(content="AC", on_click=self.button_clicked),
                     ExtraActionButton(content="+/-", on_click=self.button_clicked),
                     ExtraActionButton(content="%", on_click=self.button_clicked),
                     ActionButton(content="/", on_click=self.button_clicked),
-                ]),
+                ], expand=True),
+
                 ft.Row([
                     DigitButton(content="7", on_click=self.button_clicked),
                     DigitButton(content="8", on_click=self.button_clicked),
                     DigitButton(content="9", on_click=self.button_clicked),
                     ActionButton(content="*", on_click=self.button_clicked),
-                ]),
+                ], expand=True),
+
                 ft.Row([
                     DigitButton(content="4", on_click=self.button_clicked),
                     DigitButton(content="5", on_click=self.button_clicked),
                     DigitButton(content="6", on_click=self.button_clicked),
                     ActionButton(content="-", on_click=self.button_clicked),
-                ]),
+                ], expand=True),
+
                 ft.Row([
                     DigitButton(content="1", on_click=self.button_clicked),
                     DigitButton(content="2", on_click=self.button_clicked),
                     DigitButton(content="3", on_click=self.button_clicked),
                     ActionButton(content="+", on_click=self.button_clicked),
-                ]),
+                ], expand=True),
 
                 ft.Row([
                     DigitButton(content="0", expand=2, on_click=self.button_clicked),
                     DigitButton(content=".", on_click=self.button_clicked),
                     ActionButton(content="=", on_click=self.button_clicked),
-                ]),
+                ], expand=True),
             ]
         )
 
         self.content = ft.Column(
+            expand=True,
+            spacing=10,
             controls=[
                 ft.Row([self.history_btn], alignment=ft.MainAxisAlignment.END),
                 self.history_panel,
@@ -158,6 +181,9 @@ class CalculatorApp(ft.Container):
             ]
         )
 
+    # -----------------------------
+    # RESTO DO TEU CÓDIGO (LÓGICA)
+    # -----------------------------
     def did_mount(self):
         self.load_history()
 
@@ -221,7 +247,6 @@ class CalculatorApp(ft.Container):
         self.history_btn.icon = ft.Icons.CALCULATE if self.history_visible else ft.Icons.HISTORY
         self.history_panel.visible = self.history_visible
         self.calc_keyboard.visible = not self.history_visible
-
         self.update()
 
     def add_to_history(self, expression, result):
@@ -339,9 +364,13 @@ class CalculatorApp(ft.Container):
         self.operand1 = 0
         self.new_operand = True
 
+
 def main(page: ft.Page):
     page.title = "Calc App"
     page.expand = True
+    page.padding = 0
+    page.spacing = 0
+
     calc = CalculatorApp()
     page.add(calc)
 
