@@ -36,9 +36,6 @@ class HistoryItem(ft.Container):
         self.border = ft.border.only(bottom=ft.BorderSide(1, ft.Colors.WHITE12))
  
  
-# -----------------------------
-# BOTÕES ESTILO iPHONE
-# -----------------------------
 @ft.control
 class CalcButton(ft.Button):
     expand: int = field(default_factory=lambda: 1)
@@ -65,9 +62,6 @@ class ExtraActionButton(CalcButton):
     color: ft.Colors = ft.Colors.BLACK
  
  
-# -----------------------------
-# APP PRINCIPAL
-# -----------------------------
 @ft.control
 class CalculatorApp(ft.Container):
     def init(self):
@@ -110,9 +104,6 @@ class CalculatorApp(ft.Container):
         )
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
  
-        # -----------------------------
-        # TECLADO SIMÉTRICO
-        # -----------------------------
         self.calc_keyboard = ft.Column(
             expand=True,
             spacing=8,
@@ -123,7 +114,7 @@ class CalculatorApp(ft.Container):
  
                 ft.Row([
                     ExtraActionButton(content="CE", on_click=self.button_clicked),
-                    ExtraActionButton(content="⬅️", on_click=self.button_clicked),
+                    ExtraActionButton(content="⌫", on_click=self.button_clicked),
                     ExtraActionButton(content="(", on_click=self.button_clicked),
                     ExtraActionButton(content=")", on_click=self.button_clicked),
                 ], expand=True),
@@ -181,9 +172,6 @@ class CalculatorApp(ft.Container):
             ]
         )
  
-    # -----------------------------
-    # RESTO DO TEU CÓDIGO (LÓGICA)
-    # -----------------------------
     def did_mount(self):
         self.load_history()
  
@@ -327,7 +315,7 @@ class CalculatorApp(ft.Container):
             self.update()
             return
  
-        if data == "⬅️":
+        if data == "⌫":
             self.text.value = self.text.value[:-1]
             self.update()
             return
