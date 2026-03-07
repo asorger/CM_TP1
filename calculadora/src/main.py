@@ -1,6 +1,6 @@
 from dataclasses import field
 import flet as ft
-from sympy import sympify, N, sqrt, sin
+from sympy import sympify, N, sqrt, sin, cos, tan, asin, acos, atan, log, exp, factorial, Abs
 from datetime import datetime
 import duckdb
 import os
@@ -80,6 +80,12 @@ class CalculatorApp(ft.Container):
             on_click=self.toggle_history
         )
  
+        self.scientific_btn = ft.IconButton(
+            icon=ft.Icons.SCIENCE,
+            icon_size=28,
+            on_click=self.toggle_scientific
+        )
+ 
         self.history_panel = ft.Container(
             visible=False,
             bgcolor=ft.Colors.BLACK12,
@@ -104,6 +110,42 @@ class CalculatorApp(ft.Container):
         )
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
  
+        self.scientific_visible = False
+ 
+        self.scientific_panel_row1 = ft.Row(
+            visible=False,
+            spacing=8,
+            controls=[
+                ExtraActionButton(content="√", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+                ExtraActionButton(content="1/x", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+                ExtraActionButton(content="x²", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+                ExtraActionButton(content="log", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+            ]
+        )
+ 
+        self.scientific_panel_row2 = ft.Row(
+            visible=False,
+            spacing=8,
+            controls=[
+                ExtraActionButton(content="exp", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+                ExtraActionButton(content="!", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+                ExtraActionButton(content="sin", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+                ExtraActionButton(content="cos", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+            ]
+        )
+ 
+        self.scientific_panel_row3 = ft.Row(
+            visible=False,
+            spacing=8,
+            controls=[
+                ExtraActionButton(content="tan", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+                ExtraActionButton(content="asin", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+                ExtraActionButton(content="acos", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+                ExtraActionButton(content="atan", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+                ExtraActionButton(content="abs", bgcolor=ft.Colors.DEEP_ORANGE_400, color=ft.Colors.WHITE, on_click=self.button_clicked),
+            ]
+        )
+ 
         self.calc_keyboard = ft.Column(
             expand=True,
             spacing=8,
@@ -119,12 +161,9 @@ class CalculatorApp(ft.Container):
                     ExtraActionButton(content=")", on_click=self.button_clicked),
                 ], expand=True),
  
-                ft.Row([
-                    ExtraActionButton(content="√", on_click=self.button_clicked),
-                    ExtraActionButton(content="x²", on_click=self.button_clicked),
-                    ExtraActionButton(content="1/x", on_click=self.button_clicked),
-                    ExtraActionButton(content="sin", on_click=self.button_clicked),
-                ], expand=True),
+                self.scientific_panel_row1,
+                self.scientific_panel_row2,
+                self.scientific_panel_row3,
  
                 ft.Row([
                     ExtraActionButton(content="AC", on_click=self.button_clicked),
@@ -166,11 +205,18 @@ class CalculatorApp(ft.Container):
             expand=True,
             spacing=10,
             controls=[
-                ft.Row([self.history_btn], alignment=ft.MainAxisAlignment.END),
+                ft.Row([self.history_btn, self.scientific_btn], alignment=ft.MainAxisAlignment.END),
                 self.history_panel,
                 self.calc_keyboard
             ]
         )
+ 
+    def toggle_scientific(self, e):
+        self.scientific_visible = not self.scientific_visible
+        self.scientific_panel_row1.visible = self.scientific_visible
+        self.scientific_panel_row2.visible = self.scientific_visible
+        self.scientific_panel_row3.visible = self.scientific_visible
+        self.update()
  
     def did_mount(self):
         self.load_history()
@@ -339,11 +385,56 @@ class CalculatorApp(ft.Container):
             self.text.value = f"sin({self.text.value})"
             self.update()
             return
-       
+ 
         if data == "%":
             if self.text.value.strip() != "":
                 self.text.value = f"({self.text.value})/100"
                 self.update()
+            return
+ 
+        if data == "log":
+            self.text.value = f"log({self.text.value})"
+            self.update()
+            return
+ 
+        if data == "exp":
+            self.text.value = f"exp({self.text.value})"
+            self.update()
+            return
+ 
+        if data == "!":
+            self.text.value = f"factorial({self.text.value})"
+            self.update()
+            return
+ 
+        if data == "cos":
+            self.text.value = f"cos({self.text.value})"
+            self.update()
+            return
+ 
+        if data == "tan":
+            self.text.value = f"tan({self.text.value})"
+            self.update()
+            return
+ 
+        if data == "asin":
+            self.text.value = f"asin({self.text.value})"
+            self.update()
+            return
+ 
+        if data == "acos":
+            self.text.value = f"acos({self.text.value})"
+            self.update()
+            return
+ 
+        if data == "atan":
+            self.text.value = f"atan({self.text.value})"
+            self.update()
+            return
+ 
+        if data == "abs":
+            self.text.value = f"Abs({self.text.value})"
+            self.update()
             return
  
         if data == "=":
