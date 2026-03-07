@@ -4,18 +4,18 @@ from sympy import sympify, N, sqrt, sin
 from datetime import datetime
 import duckdb
 import os
-
+ 
 PARQUET_FILE = "historico.parquet"
-
+ 
 class HistoryItem(ft.Container):
     def __init__(self, index, timestamp, expression, result, delete_callback, copy_callback):
         super().__init__()
-
+ 
         self.index = index
         self.timestamp = timestamp
         self.expression = expression
         self.result = result
-
+ 
         self.content = ft.Column(
             controls=[
                 ft.Text(expression, size=16, color=ft.Colors.WHITE),
@@ -31,14 +31,11 @@ class HistoryItem(ft.Container):
             ],
             spacing=2
         )
-
+ 
         self.padding = 10
         self.border = ft.border.only(bottom=ft.BorderSide(1, ft.Colors.WHITE12))
-
-
-# -----------------------------
-# BOTÕES ESTILO iPHONE
-# -----------------------------
+ 
+ 
 @ft.control
 class CalcButton(ft.Button):
     expand: int = field(default_factory=lambda: 1)
@@ -48,26 +45,23 @@ class CalcButton(ft.Button):
         shape=ft.RoundedRectangleBorder(radius=12),
         padding=0
     )
-
+ 
 @ft.control
 class DigitButton(CalcButton):
     bgcolor: ft.Colors = ft.Colors.WHITE_24
     color: ft.Colors = ft.Colors.WHITE
-
+ 
 @ft.control
 class ActionButton(CalcButton):
     bgcolor: ft.Colors = ft.Colors.ORANGE
     color: ft.Colors = ft.Colors.WHITE
-
+ 
 @ft.control
 class ExtraActionButton(CalcButton):
     bgcolor: ft.Colors = ft.Colors.BLUE_GREY_100
     color: ft.Colors = ft.Colors.BLACK
-
-
-# -----------------------------
-# APP PRINCIPAL
-# -----------------------------
+ 
+ 
 @ft.control
 class CalculatorApp(ft.Container):
     def init(self):
@@ -79,13 +73,13 @@ class CalculatorApp(ft.Container):
         self.history = []
         self.history_index = 1
         self.history_visible = False
-
+ 
         self.history_btn = ft.IconButton(
             icon=ft.Icons.HISTORY,
             icon_size=28,
             on_click=self.toggle_history
         )
-
+ 
         self.history_panel = ft.Container(
             visible=False,
             bgcolor=ft.Colors.BLACK12,
@@ -97,7 +91,7 @@ class CalculatorApp(ft.Container):
                 spacing=8
             )
         )
-
+ 
         self.expression = ft.Text(value="", color=ft.Colors.WHITE54, size=16)
         self.text = ft.TextField(
             value="",
@@ -109,10 +103,7 @@ class CalculatorApp(ft.Container):
             text_align=ft.TextAlign.RIGHT
         )
         self.result = ft.Text(value="0", color=ft.Colors.WHITE, size=20)
-
-        # -----------------------------
-        # TECLADO SIMÉTRICO
-        # -----------------------------
+ 
         self.calc_keyboard = ft.Column(
             expand=True,
             spacing=8,
@@ -120,49 +111,49 @@ class CalculatorApp(ft.Container):
                 ft.Row([self.text], expand=False),
                 ft.Row([self.expression], alignment=ft.MainAxisAlignment.END, expand=False),
                 ft.Row([self.result], alignment=ft.MainAxisAlignment.END, expand=False),
-
+ 
                 ft.Row([
                     ExtraActionButton(content="CE", on_click=self.button_clicked),
-                    ExtraActionButton(content="⬅️", on_click=self.button_clicked),
+                    ExtraActionButton(content="⌫", on_click=self.button_clicked),
                     ExtraActionButton(content="(", on_click=self.button_clicked),
                     ExtraActionButton(content=")", on_click=self.button_clicked),
                 ], expand=True),
-
+ 
                 ft.Row([
                     ExtraActionButton(content="√", on_click=self.button_clicked),
                     ExtraActionButton(content="x²", on_click=self.button_clicked),
                     ExtraActionButton(content="1/x", on_click=self.button_clicked),
                     ExtraActionButton(content="sin", on_click=self.button_clicked),
                 ], expand=True),
-
+ 
                 ft.Row([
                     ExtraActionButton(content="AC", on_click=self.button_clicked),
                     ExtraActionButton(content="+/-", on_click=self.button_clicked),
                     ExtraActionButton(content="%", on_click=self.button_clicked),
                     ActionButton(content="/", on_click=self.button_clicked),
                 ], expand=True),
-
+ 
                 ft.Row([
                     DigitButton(content="7", on_click=self.button_clicked),
                     DigitButton(content="8", on_click=self.button_clicked),
                     DigitButton(content="9", on_click=self.button_clicked),
                     ActionButton(content="*", on_click=self.button_clicked),
                 ], expand=True),
-
+ 
                 ft.Row([
                     DigitButton(content="4", on_click=self.button_clicked),
                     DigitButton(content="5", on_click=self.button_clicked),
                     DigitButton(content="6", on_click=self.button_clicked),
                     ActionButton(content="-", on_click=self.button_clicked),
                 ], expand=True),
-
+ 
                 ft.Row([
                     DigitButton(content="1", on_click=self.button_clicked),
                     DigitButton(content="2", on_click=self.button_clicked),
                     DigitButton(content="3", on_click=self.button_clicked),
                     ActionButton(content="+", on_click=self.button_clicked),
                 ], expand=True),
-
+ 
                 ft.Row([
                     DigitButton(content="0", expand=2, on_click=self.button_clicked),
                     DigitButton(content=".", on_click=self.button_clicked),
@@ -170,7 +161,7 @@ class CalculatorApp(ft.Container):
                 ], expand=True),
             ]
         )
-
+ 
         self.content = ft.Column(
             expand=True,
             spacing=10,
@@ -180,13 +171,10 @@ class CalculatorApp(ft.Container):
                 self.calc_keyboard
             ]
         )
-
-    # -----------------------------
-    # RESTO DO TEU CÓDIGO (LÓGICA)
-    # -----------------------------
+ 
     def did_mount(self):
         self.load_history()
-
+ 
     def save_history(self):
         simple_list = [
             {
@@ -197,23 +185,23 @@ class CalculatorApp(ft.Container):
             }
             for item in self.history
         ]
-
+ 
         try:
             con = duckdb.connect()
             con.execute("CREATE TABLE IF NOT EXISTS hist (idx INTEGER, ts TEXT, expr TEXT, res TEXT)")
             con.execute("DELETE FROM hist")
-
+ 
             for h in simple_list:
                 con.execute(
                     "INSERT INTO hist VALUES (?, ?, ?, ?)",
                     [h["index"], h["timestamp"], h["expression"], h["result"]]
                 )
-
+ 
             con.execute(f"COPY hist TO '{PARQUET_FILE}' (FORMAT PARQUET)")
             con.close()
         except Exception as e:
             print("Erro DuckDB:", e)
-
+ 
     def load_history(self):
         if os.path.exists(PARQUET_FILE):
             try:
@@ -222,7 +210,7 @@ class CalculatorApp(ft.Container):
                     f"SELECT * FROM read_parquet('{PARQUET_FILE}')"
                 ).fetchall()
                 con.close()
-
+ 
                 for row in rows:
                     item = HistoryItem(
                         index=row[0],
@@ -233,25 +221,25 @@ class CalculatorApp(ft.Container):
                         copy_callback=self.copy_history_item
                     )
                     self.history.append(item)
-
+ 
                 if len(self.history) > 0:
                     self.history_index = self.history[0].index + 1
-
+ 
             except Exception as e:
                 print("Erro a ler Parquet/DuckDB:", e)
-
+ 
         self.refresh_history_panel()
-
+ 
     def toggle_history(self, e):
         self.history_visible = not self.history_visible
         self.history_btn.icon = ft.Icons.CALCULATE if self.history_visible else ft.Icons.HISTORY
         self.history_panel.visible = self.history_visible
         self.calc_keyboard.visible = not self.history_visible
         self.update()
-
+ 
     def add_to_history(self, expression, result):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+ 
         item = HistoryItem(
             index=self.history_index,
             timestamp=timestamp,
@@ -260,35 +248,35 @@ class CalculatorApp(ft.Container):
             delete_callback=self.delete_history_item,
             copy_callback=self.copy_history_item
         )
-
+ 
         self.history_index += 1
         self.history.insert(0, item)
-
+ 
         if len(self.history) > 10:
             self.history.pop()
-
+ 
         self.save_history()
         self.refresh_history_panel()
-
+ 
     def refresh_history_panel(self):
         self.history_panel.content.controls = self.history
         self.update()
-
+ 
     def delete_history_item(self, item):
         self.history.remove(item)
         self.save_history()
         self.refresh_history_panel()
-
+ 
     def copy_history_item(self, item):
         self.page.set_clipboard(item.result)
-
+ 
     def text_changed(self, e):
         allowed = "0123456789+-*/(). "
         new_text = "".join(c for c in self.text.value if c in allowed)
         if new_text != self.text.value:
             self.text.value = new_text
             self.update()
-
+ 
     def calculate_from_text(self, e):
         expression = self.text.value
         try:
@@ -300,7 +288,7 @@ class CalculatorApp(ft.Container):
             self.result.value = "Erro"
         self.text.value = ""
         self.update()
-
+ 
     def format_with_spaces(self, value):
         try:
             num = float(value)
@@ -312,67 +300,73 @@ class CalculatorApp(ft.Container):
                 return inteiro + "." + decimal
         except:
             return value
-
+ 
     def button_clicked(self, e):
         data = e.control.content
-
+ 
         if data == "AC":
             self.text.value = ""
             self.result.value = "0"
             self.update()
             return
-
+ 
         if data == "CE":
             self.text.value = ""
             self.update()
             return
-
-        if data == "⬅️":
+ 
+        if data == "⌫":
             self.text.value = self.text.value[:-1]
             self.update()
             return
-
+ 
         if data == "√":
             self.text.value = f"sqrt({self.text.value})"
             self.update()
             return
-
+ 
         if data == "x²":
             self.text.value += "**2"
             self.update()
             return
-
+ 
         if data == "1/x":
             self.text.value = f"1/({self.text.value})"
             self.update()
             return
-
+ 
         if data == "sin":
             self.text.value = f"sin({self.text.value})"
             self.update()
             return
-
+       
+        if data == "%":
+            if self.text.value.strip() != "":
+                self.text.value = f"({self.text.value})/100"
+                self.update()
+            return
+ 
         if data == "=":
             self.calculate_from_text(None)
             return
-
+ 
         self.text.value += data
         self.update()
-
+ 
     def reset(self):
         self.operator = "+"
         self.operand1 = 0
         self.new_operand = True
-
-
+ 
+ 
 def main(page: ft.Page):
     page.title = "Calc App"
     page.expand = True
     page.padding = 0
     page.spacing = 0
-
+ 
     calc = CalculatorApp()
     page.add(calc)
-
+ 
 if __name__ == "__main__":
     ft.app(target=main)
