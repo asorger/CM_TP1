@@ -96,7 +96,7 @@ class CalculatorApp(ft.Container):
             border_radius=10,
             content=ft.Column(
                 scroll=ft.ScrollMode.AUTO,
-                height=300,
+                height=800,
                 spacing=8
             )
         )
